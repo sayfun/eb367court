@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Objection! The Chart Court</title>
+<meta name="description" content="A short courtroom adventure about honest and dishonest charts, built for EB 367.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C1917; --rust:#C4511A; --rust-dark:#B04618; --rust-light:#FDF0E8;
+  --cream:#F5F0E8; --off:#FAF8F5; --paper:#FFFFFF; --grey:#6B7280; --line:#D6D0C6;
+  --good:#2F6B3A; --good-bg:#EAF3EA;
+  --sans:'Space Grotesk',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+main{max-width:860px;margin:0 auto;padding:24px 16px 64px}
+[hidden]{display:none!important}
+h1,h2,h3{margin:0;line-height:1.1;letter-spacing:-.01em}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--grey)}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--rust);font-weight:700}
+.card{background:var(--paper);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:22px}
+.btn{font-family:var(--sans);font-weight:700;font-size:16px;background:var(--ink);color:var(--paper);border:2px solid var(--ink);padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--rust);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--rust)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--rust)}
+.btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none;font-size:14px;padding:7px 12px}
+.btn.ghost:hover{background:var(--ink);color:var(--paper);transform:none}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px}
+footer{font-family:var(--mono);font-size:11px;color:var(--grey);text-align:center;margin-top:40px;line-height:1.7}
+
+/* title */
+#title .card{padding:34px 28px}
+.big-title{font-size:clamp(46px,11vw,88px);font-weight:700;margin:14px 0 2px;color:var(--rust)}
+.sub-title{font-size:clamp(26px,5.5vw,40px);font-weight:700;margin-bottom:18px}
+#title p{max-width:560px}
+label.lbl{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:22px 0 6px}
+input[type=text],input[type=number]{font-family:var(--sans);font-size:18px;padding:11px 12px;border:2px solid var(--ink);background:var(--off);width:100%;max-width:380px;color:var(--ink)}
+input:focus{outline:3px solid var(--rust);outline-offset:1px}
+.small{font-size:14px;color:var(--grey)}
+
+/* tape */
+.tape{background:repeating-linear-gradient(-45deg,var(--rust) 0 22px,var(--ink) 22px 44px);color:var(--paper);font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-align:center;padding:6px 0;margin:0 -16px 18px;white-space:nowrap;overflow:hidden}
+.tape span{background:var(--ink);padding:3px 10px}
+
+/* map */
+.map-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.map-head h2{font-size:38px}
+.progress{height:10px;border:2px solid var(--ink);background:var(--paper);margin:12px 0 22px}
+.progress i{display:block;height:100%;background:var(--rust);transition:width .4s}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.door{position:relative;text-align:left;font-family:var(--sans);background:var(--paper);color:var(--ink);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:18px;cursor:pointer;min-height:132px;transition:transform .08s,box-shadow .08s}
+.door:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--rust)}
+.door .ic{font-size:30px;line-height:1}
+.door .pl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);margin-top:10px}
+.door .tt{font-weight:700;font-size:20px;margin-top:2px}
+.door.closed{background:var(--off)}
+.door.closed .tt,.door.closed .ic{opacity:.45}
+.stamp{position:absolute;top:14px;right:12px;transform:rotate(-8deg);border:3px solid var(--rust);color:var(--rust);font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.12em;padding:2px 8px}
+.door.boss{grid-column:1/-1;background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--rust)}
+.door.boss .pl{color:#C9C2B8}
+.door.boss:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.hint{margin-top:18px;font-size:15px;color:var(--grey)}
+
+/* scene */
+.scene-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.scene-title{font-size:30px;margin:4px 0 18px}
+.npc{display:flex;gap:14px;align-items:flex-start;margin:6px 0 16px}
+.portrait{flex:0 0 58px;height:58px;border:2px solid var(--ink);background:var(--rust-light);display:flex;align-items:center;justify-content:center;font-size:30px;border-radius:50%}
+.speech{position:relative;flex:1;background:var(--paper);border:2px solid var(--ink);padding:12px 15px}
+.speech:before{content:"";position:absolute;left:-10px;top:18px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+.npc-name{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rust);margin-bottom:3px}
+.npc-text{font-size:17px}
+.claim .npc-text{font-size:19px;font-weight:500}
+.exhibit{border:2px solid var(--ink);background:var(--paper);margin:4px 0 12px;box-shadow:4px 4px 0 var(--line)}
+.exhibit svg{display:block;width:100%;height:auto}
+.exhibit-lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin:2px 0 4px}
+.cluebox{background:var(--rust-light);border-left:4px solid var(--rust);padding:11px 14px;min-height:48px;font-size:16px}
+.banner{display:inline-block;background:var(--ink);color:var(--paper);font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.12em;padding:5px 10px;margin-bottom:10px}
+.opts{display:grid;gap:10px;margin-top:4px}
+.opt{font-family:var(--sans);font-size:16px;text-align:left;background:var(--paper);color:var(--ink);border:2px solid var(--ink);padding:12px 14px;cursor:pointer;transition:background .1s}
+.opt:hover:not(:disabled){background:var(--rust-light)}
+.opt:disabled{cursor:default}
+.opt.wrong{text-decoration:line-through;opacity:.45}
+.opt.right{background:var(--good-bg);border-color:var(--good)}
+.opt b{font-family:var(--mono);color:var(--rust);margin-right:6px}
+.fb{margin-top:14px;padding:12px 14px;border:2px solid var(--ink);font-size:16px}
+.fb.bad{background:var(--rust-light);border-color:var(--rust)}
+.fb.good{background:var(--good-bg);border-color:var(--good)}
+.fb strong{font-family:var(--mono);font-size:13px;letter-spacing:.08em;margin-right:4px}
+.charges{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.charge{font-family:var(--sans);text-align:left;background:var(--paper);color:var(--ink);border:2px solid var(--ink);padding:11px 13px;cursor:pointer}
+.charge:hover:not(:disabled){background:var(--rust-light)}
+.charge span{display:block;font-size:13px;color:var(--grey);margin-top:2px;line-height:1.35}
+.charge strong{font-size:16px}
+.charge.acq{border-style:dashed}
+.charge.wrong{opacity:.4}
+.charge.right{background:var(--good-bg);border-color:var(--good)}
+.formula{font-family:var(--mono);font-size:15px;background:var(--ink);color:var(--paper);padding:12px 14px;margin:6px 0 12px}
+.closed-card{text-align:left}
+.closed-card h3{font-size:28px;margin:8px 0 12px}
+.closed-card ul{padding-left:20px;margin:10px 0 0}
+.closed-card li{margin:6px 0}
+.big-stamp{display:inline-block;transform:rotate(-4deg);border:4px solid var(--rust);color:var(--rust);font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.14em;padding:4px 14px}
+.docket-count{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.06em}
+.gavels{letter-spacing:4px}
+
+/* certificate */
+.cert{text-align:center;padding:34px 24px;position:relative}
+.cert .big-stamp{font-size:30px;margin:6px 0 16px}
+.cert h2{font-size:clamp(28px,6vw,42px)}
+.cert .who{font-size:clamp(30px,7vw,48px);font-weight:700;color:var(--rust);margin:10px 0 6px;word-break:break-word}
+.cert .meta{font-family:var(--mono);font-size:13px;color:var(--grey);margin-top:12px;line-height:1.8}
+.shoot{margin:18px 0 0;background:var(--ink);color:var(--paper);padding:14px 16px;font-weight:700;text-align:center}
+.recap{margin-top:22px}
+.recap ol{padding-left:22px;margin:8px 0 0}
+.recap li{margin:8px 0}
+
+@keyframes pulse{0%,100%{r:11}50%{r:13}}
+.hs{cursor:pointer}
+.hs circle{fill:var(--rust);stroke:#fff;stroke-width:2;animation:pulse 1.4s ease-in-out infinite}
+.hs.done circle{fill:var(--ink);animation:none}
+.hs text{fill:#fff;font:700 11px var(--mono);pointer-events:none}
+.hs:focus{outline:none}
+.hs:focus circle{stroke:var(--ink);stroke-width:3}
+svg .c-title{font:700 12px var(--mono);fill:var(--ink);letter-spacing:.04em}
+svg .c-tick{font:500 9px var(--mono);fill:var(--grey)}
+svg .c-foot{font:500 8.5px var(--mono);fill:var(--grey)}
+svg .c-val{font:700 11px var(--sans);fill:var(--ink)}
+svg .c-leg{font:500 9.5px var(--mono);fill:var(--ink)}
+svg .c-big{font:700 14px var(--sans);fill:var(--ink)}
+svg .c-small{font:500 10.5px var(--sans);fill:var(--ink)}
+svg .c-lbl{font:700 9px var(--mono);fill:var(--grey);letter-spacing:.08em}
+svg .c-pie{font:700 12px var(--sans)}
+svg .muted{fill:var(--grey)}
+svg .gridl{stroke:var(--line);stroke-width:1}
+svg .axis{stroke:var(--ink);stroke-width:1.5}
+@media (max-width:560px){
+  body{font-size:16px}
+  .card{padding:18px}
+  .portrait{flex-basis:46px;height:46px;font-size:24px}
+  .scene-title{font-size:25px}
+}
+@media (prefers-reduced-motion:reduce){.hs circle{animation:none}}
+</style>
+</head>
+<body>
+<main>
+
+<!-- TITLE -->
+<section class="screen" id="title">
+  <div class="card">
+    <div class="kicker">EB 367 · Interactive homework · ~30 min</div>
+    <div class="big-title">Objection!</div>
+    <div class="sub-title">The Chart Court</div>
+    <p>The city’s dashboards have started lying. Six cases are waiting on the docket. Prosecute the guilty charts, defend the honest one, then survive the Final Appeal.</p>
+    <label class="lbl" for="name">Your full name, as it appears on MS Teams</label>
+    <input type="text" id="name" maxlength="60" autocomplete="name" placeholder="e.g. Ploy Srisuk">
+    <div class="row" style="justify-content:flex-start">
+      <button class="btn" id="start">Enter the courthouse ▸</button>
+    </div>
+    <p class="small" style="margin-top:16px">Progress saves in this browser. Nothing here punishes a second look. <a href="#" id="reset" style="color:var(--grey)">Start over</a></p>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="screen" id="map" hidden>
+  <div class="map-head">
+    <div><div class="kicker">The Courthouse</div><h2>Today’s docket</h2></div>
+    <div class="mono" id="progress-txt">0 / 6 cases closed</div>
+  </div>
+  <div class="progress"><i id="progress-bar" style="width:0"></i></div>
+  <div class="grid" id="doors"></div>
+  <p class="hint">Take the cases in any order. The Final Appeal opens once all six are closed.</p>
+</section>
+
+<!-- SCENE -->
+<section class="screen" id="scene" hidden>
+  <div id="tape"></div>
+  <div class="scene-head">
+    <button class="btn ghost" data-act="map">◂ Courthouse</button>
+    <span class="mono" id="step-count"></span>
+  </div>
+  <div class="kicker" id="scene-place"></div>
+  <h2 class="scene-title" id="scene-title"></h2>
+  <div id="stage"></div>
+</section>
+
+<!-- CERTIFICATE -->
+<section class="screen" id="cert" hidden>
+  <div class="card cert">
+    <div class="kicker">EB 367 · The Chart Court</div>
+    <div class="big-stamp">CASE CLOSED</div>
+    <h2>Certified Counsel of the Chart Court</h2>
+    <div class="who" id="cert-name"></div>
+    <div>closed all six cases and won the Final Appeal.</div>
+    <div class="meta" id="cert-meta"></div>
+    <div class="shoot">📸 Screenshot this card and post it in the EB 367 assignment on MS Teams.</div>
+  </div>
+  <div class="card recap">
+    <div class="kicker">Five things the court wants you to remember</div>
+    <ol>
+      <li><b>Who / What / How is your prompt.</b> Write it before the AI writes it for you.</li>
+      <li><b>Lie Factor = effect shown ÷ effect in the data.</b> Aim for 1.</li>
+      <li><b>Cairo’s five ways charts lie:</b> poor design, dubious data, insufficient data, concealed uncertainty, misleading patterns.</li>
+      <li><b>Bars start at zero. Lines fit the meaningful range, and say so.</b> The axis is a decision. Make it on purpose.</li>
+      <li><b>You’ll use AI. You still own the chart.</b> Nobody fires the software.</li>
+    </ol>
+    <div class="row"><button class="btn ghost" data-act="map">◂ Back to the courthouse</button></div>
+  </div>
+</section>
+
+<footer>
+  Original fiction, fictional data, made for EB 367.<br>
+  Tufte, <i>The Visual Display of Quantitative Information</i> (1983) · Cairo, <i>How Charts Lie</i> (2019)
+</footer>
+</main>
+
+<script>
+/* ---------- chart helpers (viewBox 400 x 250) ---------- */
+const TOP = 44, BOT = 200;
+const frame = (inner, o = {}) =>
+  `<svg viewBox="0 0 400 250" role="img" aria-label="${(o.title||'Exhibit').replace(/"/g,'')}">` +
+  `<rect width="400" height="250" fill="#fff"/>` +
+  (o.title ? `<text x="18" y="22" class="c-title"${o.titleColor?` style="fill:${o.titleColor}"`:''}>${o.title}</text>` : '') +
+  inner +
+  (o.foot ? `<text x="18" y="242" class="c-foot">${o.foot}</text>` : '') + `</svg>`;
+
+function bars(o) {
+  const x0 = o.x0 || 60, x1 = o.x1 || 385;
+  const ys = v => BOT - (v - o.min) / (o.max - o.min) * (BOT - TOP);
+  let s = '';
+  o.ticks.forEach(t => { const y = ys(t);
+    s += `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" class="gridl"/><text x="${x0 - 6}" y="${y + 3}" class="c-tick" text-anchor="end">${o.fmt ? o.fmt(t) : t}</text>`; });
+  const band = (x1 - x0) / o.values.length, bw = band * (o.bw || 0.55);
+  o.values.forEach((v, i) => {
+    const x = x0 + band * i + (band - bw) / 2, y = ys(v);
+    s += `<rect x="${x}" y="${y}" width="${bw}" height="${BOT - y}" fill="${(o.colors && o.colors[i]) || 'var(--rust)'}"/>`;
+    if (o.valLabels) s += `<text x="${x + bw / 2}" y="${y - 6}" class="c-val" text-anchor="middle">${o.valLabels[i]}</text>`;
+    s += `<text x="${x + bw / 2}" y="${BOT + 14}" class="c-tick" text-anchor="middle">${o.labels[i]}</text>`;
+  });
+  s += `<line x1="${x0}" x2="${x1}" y1="${BOT}" y2="${BOT}" class="axis"/>`;
+  return s;
+}
+
+function lines(o) {
+  const x0 = o.x0 || 60, x1 = o.x1 || 380;
+  const step = (x1 - x0) / (o.labels.length - 1);
+  const L = o.series[0];
+  const ysL = v => BOT - (v - L.min) / (L.max - L.min) * (BOT - TOP);
+  let s = '';
+  if (o.shade) {
+    const a = x0 + o.shade[0] * step - step / 2, b = x0 + o.shade[1] * step + step / 2;
+    s += `<rect x="${Math.max(a, x0)}" y="${TOP - 6}" width="${Math.min(b, x1 + 8) - Math.max(a, x0)}" height="${BOT - TOP + 6}" fill="var(--rust-light)"/>`;
+    s += `<text x="${(Math.max(a, x0) + Math.min(b, x1 + 8)) / 2}" y="${TOP + 6}" class="c-tick" text-anchor="middle" style="fill:var(--rust)">${o.shadeLabel || ''}</text>`;
+  }
+  o.ticks.forEach(t => { const y = ysL(t);
+    s += `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" class="gridl"/><text x="${x0 - 6}" y="${y + 3}" class="c-tick" text-anchor="end" ${o.ticksR ? `style="fill:${L.color}"` : ''}>${o.fmt ? o.fmt(t) : t}</text>`; });
+  if (o.ticksR) { const R = o.series[1]; const ysR = v => BOT - (v - R.min) / (R.max - R.min) * (BOT - TOP);
+    o.ticksR.forEach(t => { s += `<text x="${x1 + 6}" y="${ysR(t) + 3}" class="c-tick" style="fill:${R.color}">${o.fmtR ? o.fmtR(t) : t}</text>`; }); }
+  o.labels.forEach((l, i) => { if (!o.every || i % o.every === 0 || i === o.labels.length - 1)
+    s += `<text x="${x0 + i * step}" y="${BOT + 14}" class="c-tick" text-anchor="middle">${l}</text>`; });
+  s += `<line x1="${x0}" x2="${x1}" y1="${BOT}" y2="${BOT}" class="axis"/>`;
+  o.series.forEach(se => {
+    const ys = v => BOT - (v - se.min) / (se.max - se.min) * (BOT - TOP);
+    const pts = se.values.map((v, i) => `${(x0 + i * step).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+    s += `<polyline points="${pts}" fill="none" stroke="${se.color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    se.values.forEach((v, i) => { s += `<circle cx="${x0 + i * step}" cy="${ys(v)}" r="3.2" fill="${se.color}"/>`; });
+  });
+  if (o.series.some(se => se.label)) {
+    let lx = 18;
+    o.series.forEach(se => { if (!se.label) return;
+      s += `<line x1="${lx}" x2="${lx + 16}" y1="33" y2="33" stroke="${se.color}" stroke-width="3"/><text x="${lx + 21}" y="36" class="c-leg">${se.label}</text>`;
+      lx += 36 + se.label.length * 5.9; });
+  }
+  return s;
+}
+
+function pie(o) {
+  const cx = 130, cy = 134, r = 82, tot = o.values.reduce((a, b) => a + b, 0);
+  let s = '', a = -Math.PI / 2;
+  o.values.forEach((v, i) => {
+    const a2 = a + v / tot * 2 * Math.PI, large = (a2 - a) > Math.PI ? 1 : 0;
+    const p1 = [cx + r * Math.cos(a), cy + r * Math.sin(a)].map(n => n.toFixed(1));
+    const p2 = [cx + r * Math.cos(a2), cy + r * Math.sin(a2)].map(n => n.toFixed(1));
+    s += `<path d="M${cx},${cy} L${p1} A${r},${r} 0 ${large} 1 ${p2} Z" fill="${o.colors[i]}" stroke="#fff" stroke-width="2"/>`;
+    const m = (a + a2) / 2;
+    s += `<text x="${(cx + r * .62 * Math.cos(m)).toFixed(1)}" y="${(cy + r * .62 * Math.sin(m) + 4).toFixed(1)}" class="c-pie" text-anchor="middle" style="fill:${o.txt[i]}">${o.pct[i]}</text>`;
+    a = a2;
+  });
+  o.labels.forEach((l, i) => {
+    s += `<rect x="250" y="${78 + i * 24}" width="12" height="12" fill="${o.colors[i]}"/><text x="270" y="${88 + i * 24}" class="c-leg">${l} · ${o.pct[i]}</text>`;
+  });
+  return s;
+}
+
+const RUST = 'var(--rust)', INK = 'var(--ink)', GREY = '#B8B0A6';
+
+/* ---------- exhibits ---------- */
+const EX = {
+  brief: `<svg viewBox="0 0 400 250" role="img" aria-label="Client brief"><rect width="400" height="250" fill="#fff"/>
+    <text x="18" y="22" class="c-title">CLIENT BRIEF · KOPI KOPI CAFÉ</text>
+    <line x1="18" x2="382" y1="31" y2="31" class="axis"/>
+    <text x="18" y="56" class="c-lbl">REQUEST</text><text x="92" y="56" class="c-big">“Make a chart of our sales data.”</text>
+    <text x="18" y="82" class="c-lbl">AUDIENCE</text><text x="92" y="82" class="c-big muted">?</text>
+    <text x="18" y="108" class="c-lbl">MESSAGE</text><text x="92" y="108" class="c-big muted">?</text>
+    <rect x="18" y="126" width="220" height="104" fill="#FFF4C4" stroke="#E3CF7E" transform="rotate(-1.5 128 178)"/>
+    <text x="30" y="146" class="c-lbl" style="fill:var(--rust)">✨ AI-GENERATED PERSONA</text>
+    <text x="30" y="168" class="c-big">Khun Ploy, 34</text>
+    <text x="30" y="186" class="c-small">Office worker · loves oat milk</text>
+    <text x="30" y="202" class="c-small">Visits 4× a week · “very loyal”</text>
+    <text x="30" y="219" class="c-small muted">Source: —</text>
+    <text x="268" y="128" class="c-lbl">POWER ↑  INTEREST →</text>
+    <rect x="268" y="136" width="114" height="94" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+    <line x1="325" x2="325" y1="136" y2="230" stroke="var(--ink)"/><line x1="268" x2="382" y1="183" y2="183" stroke="var(--ink)"/>
+    <text x="296" y="156" class="c-tick" text-anchor="middle">Keep</text><text x="296" y="166" class="c-tick" text-anchor="middle">satisfied</text>
+    <text x="353" y="156" class="c-tick" text-anchor="middle">Manage</text><text x="353" y="166" class="c-tick" text-anchor="middle">closely</text>
+    <text x="296" y="210" class="c-tick" text-anchor="middle">Monitor</text>
+    <text x="353" y="204" class="c-tick" text-anchor="middle">Keep</text><text x="353" y="214" class="c-tick" text-anchor="middle">informed</text>
+    <text x="296" y="178" class="c-small" text-anchor="middle" style="fill:var(--rust);font-weight:700">🏦 Bank</text>
+  </svg>`,
+
+  tuktrakQ3: frame(lines({ labels: ['Jul', 'Aug', 'Sep'], series: [{ values: [55, 58, 62], min: 50, max: 65, color: RUST }], ticks: [50, 55, 60, 65], fmt: v => v + 'k' }),
+    { title: 'TUKTRAK: RECORD GROWTH! 📈', foot: 'Monthly active users (thousands) · fictional data' }),
+  tuktrakYear: frame(lines({ labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'], series: [{ values: [92, 88, 81, 70, 61, 52, 55, 58, 62], min: 0, max: 100, color: RUST }], ticks: [0, 25, 50, 75, 100], fmt: v => v + 'k', shade: [6, 8], shadeLabel: 'the “record”' }),
+    { title: 'TUKTRAK: THE FULL YEAR', foot: 'Monthly active users (thousands) · fictional data' }),
+
+  dual: frame(lines({ labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], x1: 345,
+    series: [{ values: [120, 180, 260, 340, 420, 480], min: 0, max: 500, color: RUST, label: 'Cups sold (left)' },
+             { values: [48200, 48500, 48900, 49300, 49700, 50100], min: 48000, max: 50200, color: INK, label: 'TikTok followers (right)' }],
+    ticks: [0, 100, 200, 300, 400, 500], ticksR: [48000, 48500, 49000, 49500, 50000], fmtR: v => (v / 1000).toFixed(1) + 'k' }),
+    { title: 'TIKTOK FOLLOWERS DRIVE SALES', foot: 'Kopi Kopi iced coffee · fictional data' }),
+  dualIndexed: frame(lines({ labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    series: [{ values: [100, 150, 217, 283, 350, 400], min: 0, max: 420, color: RUST, label: 'Cups sold' },
+             { values: [100, 101, 101, 102, 103, 104], min: 0, max: 420, color: INK, label: 'TikTok followers' }],
+    ticks: [0, 100, 200, 300, 400] }),
+    { title: 'SAME DATA, BOTH INDEXED (JAN = 100)', foot: 'Sales ×4. Followers +4%. · fictional data' }),
+
+  pie: frame(pie({ values: [45, 38, 27, 18], pct: ['45%', '38%', '27%', '18%'], labels: ['Instagram', 'Friends', 'TikTok', 'Walked past'],
+    colors: ['#C4511A', '#1C1917', '#E8A27C', '#CFC7BC'], txt: ['#fff', '#fff', '#1C1917', '#1C1917'] }) +
+    `<text x="250" y="190" class="c-foot">Respondents could choose</text><text x="250" y="201" class="c-foot">more than one answer.</text>`,
+    { title: 'HOW DID YOU HEAR ABOUT KOPI KOPI?', foot: 'Customer survey · fictional data' }),
+  pieFixed: frame(bars({ labels: ['Instagram', 'Friends', 'TikTok', 'Walked past'], values: [45, 38, 27, 18], min: 0, max: 50, ticks: [0, 10, 20, 30, 40, 50], fmt: v => v + '%', valLabels: ['45%', '38%', '27%', '18%'] }),
+    { title: '% OF RESPONDENTS PER ANSWER', foot: 'Multiple answers allowed, so no need to add to 100% · fictional data' }),
+
+  lie: frame(bars({ labels: ['2025', '2026'], values: [10.0, 10.42], min: 9.86, max: 10.46, ticks: [9.9, 10.1, 10.3], fmt: v => '฿' + v.toFixed(1) + 'M', bw: .45, valLabels: ['฿10.0M', '฿10.42M'] }),
+    { title: 'REVENUE SKYROCKETS 🚀', foot: 'Kopi Kopi annual revenue · fictional data' }),
+
+  bot: frame(bars({ labels: ['W1', 'W2', 'W3', 'W4', 'W5'], values: [14, 18, 15, 16, 66], min: 0, max: 70, ticks: [0, 35, 70], colors: [GREY, GREY, GREY, GREY, 'var(--rust)'], valLabels: ['14', '18', '15', '16', '66'] }),
+    { title: '✨ AUTO-INSIGHT: ENGAGEMENT UP 312%!', titleColor: 'var(--rust)', foot: 'Instagram likes per week · generated by DashBot 3000 · fictional data' }),
+
+  temp: frame(lines({ labels: ['1985', '1990', '1995', '2000', '2005', '2010', '2015', '2020', '2025'], every: 2,
+    series: [{ values: [28.1, 28.2, 28.3, 28.5, 28.6, 28.8, 29.0, 29.2, 29.5], min: 27.5, max: 30, color: RUST }], ticks: [27.5, 28, 28.5, 29, 29.5, 30], fmt: v => v.toFixed(1) + '°' }),
+    { title: 'BANGKOK IS GETTING HOTTER', foot: 'Annual mean, °C · axis starts at 27.5°C · illustrative data' }),
+  tempZero: frame(lines({ labels: ['1985', '1990', '1995', '2000', '2005', '2010', '2015', '2020', '2025'], every: 2,
+    series: [{ values: [28.1, 28.2, 28.3, 28.5, 28.6, 28.8, 29.0, 29.2, 29.5], min: 0, max: 30, color: RUST }], ticks: [0, 10, 20, 30], fmt: v => v + '°' }),
+    { title: 'THE PROSECUTION’S “HONEST” VERSION', foot: 'Same data, axis from 0°C · illustrative data' }),
+};
+
+const DOCKET_EX = {
+  plans: frame(bars({ labels: ['Plan A', 'Plan B'], values: [96, 98], min: 95, max: 98.5, ticks: [95, 96, 97, 98], fmt: v => v + '%', bw: .45, valLabels: ['96%', '98%'] }), { title: 'PLAN B CRUSHES PLAN A', foot: 'Customer satisfaction · fictional data' }),
+  love: frame(bars({ labels: ['Love us', 'Meh'], values: [94, 6], min: 0, max: 100, ticks: [0, 50, 100], fmt: v => v + '%', bw: .45, valLabels: ['94%', '6%'], colors: [RUST, GREY] }), { title: '94% OF CUSTOMERS LOVE US ❤️', foot: 'Source: poll on our own Instagram story · fictional data' }),
+  xmas: frame(lines({ labels: ['1 Dec', '8 Dec', '15 Dec', '22 Dec'], series: [{ values: [30, 42, 61, 88], min: 0, max: 100, color: RUST }], ticks: [0, 50, 100] }), { title: 'SALES ARE BOOMING 🎉', foot: 'Daily sales (฿000), 1–24 December · fictional data' }),
+  poll: frame(bars({ labels: ['Candidate A', 'Candidate B'], values: [51, 49], min: 0, max: 60, ticks: [0, 20, 40, 60], fmt: v => v + '%', bw: .45, valLabels: ['51%', '49%'], colors: [RUST, INK] }), { title: 'A WILL WIN', foot: 'Student council poll, n = 400 · margin of error ±5 pts, not shown on the original · fictional' }),
+  cats: frame(lines({ labels: ['2019', '2020', '2021', '2022', '2023', '2024', '2025'], x1: 345,
+    series: [{ values: [4.1, 4.6, 5.0, 5.8, 6.5, 7.1, 7.9], min: 4, max: 8, color: RUST, label: 'Cafés, thousands (left)' },
+             { values: [1.2, 1.5, 2.0, 2.4, 2.9, 3.3, 3.8], min: 1, max: 4, color: INK, label: 'Cat videos watched, bn (right)' }],
+    ticks: [4, 5, 6, 7, 8], ticksR: [1, 2, 3, 4] }), { title: 'CAT VIDEOS FUEL THE CAFÉ BOOM', foot: 'fictional data' }),
+  faculty: frame(bars({ labels: ['Arts', 'Economics', 'Law', 'Science'], values: [410, 380, 290, 350], min: 0, max: 500, ticks: [0, 100, 200, 300, 400, 500], valLabels: ['410', '380', '290', '350'], colors: [INK, INK, INK, INK] }), { title: 'NEW STUDENTS BY FACULTY, 2026', foot: 'Source: registrar · fictional data' }),
+  cups: `<svg viewBox="0 0 400 250" role="img" aria-label="Pictogram"><rect width="400" height="250" fill="#fff"/>
+    <text x="18" y="22" class="c-title">WE DOUBLED! ☕</text>
+    <rect x="80" y="150" width="50" height="50" fill="var(--rust)"/><rect x="130" y="162" width="12" height="22" fill="none" stroke="var(--rust)" stroke-width="5"/>
+    <rect x="215" y="100" width="100" height="100" fill="var(--rust)"/><rect x="315" y="124" width="24" height="44" fill="none" stroke="var(--rust)" stroke-width="8"/>
+    <line x1="40" x2="380" y1="200" y2="200" class="axis"/>
+    <text x="105" y="218" class="c-tick" text-anchor="middle">2025: 1,000 cups</text>
+    <text x="265" y="218" class="c-tick" text-anchor="middle">2026: 2,000 cups</text>
+    <text x="18" y="242" class="c-foot">Cups sold per month · fictional data</text></svg>`,
+  fever: frame(lines({ labels: ['0h', '4h', '8h', '12h', '16h', '20h', '24h'], series: [{ values: [37.0, 37.4, 38.2, 39.1, 38.6, 37.8, 37.2], min: 36, max: 40, color: RUST }], ticks: [36, 37, 38, 39, 40], fmt: v => v + '°C' }), { title: 'PATIENT TEMPERATURE, 24 HOURS', foot: 'Axis starts at 36°C · illustrative data' }),
+};
+
+/* ---------- charges ---------- */
+const CHARGES = [
+  ['Poor design', 'The build distorts: wrong chart type, broken axis, 3D, parts that don’t make a whole.'],
+  ['Dubious data', 'The data can’t be trusted: biased or unknown source, invented numbers.'],
+  ['Insufficient data', 'Too little data, or a cherry-picked slice of it.'],
+  ['Concealed uncertainty', 'Hides sample size, margins or error. A guess dressed as a fact.'],
+  ['Misleading patterns', 'Implies a trend or relationship the data doesn’t support.'],
+  ['Acquit', 'Not guilty. Every choice is defensible and disclosed.'],
+];
+
+/* ---------- cases ---------- */
+const CASES = [
+{
+  id: 'intake', icon: '🗂️', place: 'The Intake Desk', title: 'The Brief',
+  npc: { name: 'Clerk Mali', icon: '🗂️' },
+  steps: [
+    { type: 'talk', text: 'Welcome, counsel. Every case in this building starts at my desk. A café owner just filed a brief. Before anyone opens ChatGPT, read it properly.' },
+    { type: 'examine', text: 'Here’s the brief. Something is missing, and something is made up. Check every marker.', svg: EX.brief, hotspots: [
+      { x: 350, y: 51, clue: '“A chart of our sales data.” No audience, no message, no format. Ask an AI this and it will happily answer a question nobody asked.' },
+      { x: 112, y: 77, clue: 'Audience: blank. The owner, the bank, the baristas? Different readers need different charts. That grid on the right should look familiar from the first half of the course.' },
+      { x: 226, y: 143, clue: 'Khun Ploy doesn’t exist. An AI invented her, oat milk and all. Source: nothing. Nobody checked.' },
+    ] },
+    { type: 'round', who: { name: 'Khun Somchai, café owner', icon: '☕' }, claim: 'Just ask the AI for “a chart of the sales data”. It’s smart. It’ll figure it out.', options: [
+      { t: 'Who is reading it, what should they take away, and how will they see it? That’s the prompt.', ok: true, why: 'Who / What / How IS your prompt. Skip it and the AI guesses for you.' },
+      { t: 'Fine, but make it a pie chart. Pies are always safe.', why: 'A chart type isn’t a message. Also, pies are rarely safe. You’ll see.' },
+      { t: 'AI can’t make charts, so we’ll do it by hand.', why: 'It can, and you’ll use it. The tool isn’t the problem. The missing brief is.' },
+    ] },
+    { type: 'round', who: { name: 'Khun Somchai, café owner', icon: '☕' }, claim: 'The bank manager decides on our loan. She’s very busy. Send her the full 40-row sales table so she has everything.', options: [
+      { t: 'High power, low interest: keep her satisfied with one clear chart and one headline.', ok: true, why: 'Busy, powerful readers need the conclusion first. The table can go in the appendix.' },
+      { t: 'Send the table plus a dashboard with 12 filters so she can explore.', why: 'She won’t explore. She’ll close the file.' },
+      { t: 'Send nothing until she asks.', why: '“Keep satisfied” means proactive, not silent. She decides on your loan.' },
+    ] },
+    { type: 'round', who: { name: 'Khun Somchai, café owner', icon: '☕' }, claim: 'Our persona Khun Ploy loves oat milk. Chart her preferences for the investor deck!', options: [
+      { t: 'Ploy was invented by an AI. A chart built on invented people is invented data.', ok: true, why: 'If you can’t trace where the numbers came from, they don’t go in front of an investor.' },
+      { t: 'Sure, AI personas are based on real averages anyway.', why: 'Maybe, maybe not. “Source: —” means you can’t know.' },
+      { t: 'Only if we add a nice stock photo of her.', why: 'A photo makes an invented person more convincing, not more real.' },
+    ] },
+    { type: 'verdict', text: 'File the charge against a chart of Khun Ploy’s preferences.', correct: 'Dubious data', notes: {
+      'Insufficient data': 'Close, but the problem isn’t how much data. It’s whether the data is real at all.',
+      'Concealed uncertainty': 'There’s no uncertainty to hide. There’s no real data underneath.' } },
+    { type: 'closed', lessons: [
+      '<b>Who / What / How is your prompt.</b> Write it before the AI does.',
+      'Match the chart to the stakeholder’s power and interest.',
+      '<b>Dubious data:</b> if you can’t trace the source, it doesn’t go on a slide.' ] },
+  ],
+},
+{
+  id: 'cherry', icon: '🕴️', place: 'Courtroom A', title: 'The Missing Months',
+  npc: { name: 'Counsel Rosy Window, for the defence', icon: '🕴️' },
+  steps: [
+    { type: 'talk', text: 'Counsel Rosy Window, for the defence. My client, the Tuktrak app, has had a record quarter. You are about to see the most beautiful growth in the history of this court.' },
+    { type: 'examine', text: 'Exhibit A. Magnificent, isn’t it?', svg: EX.tuktrakQ3, hotspots: [
+      { x: 275, y: 212, clue: 'Jul, Aug, Sep. Three months. The year started in January. Where did the rest go?' },
+      { x: 232, y: 17, clue: '“Record” compared to what? The title claims something the chart can’t show.' },
+      { x: 20, y: 122, clue: 'The axis runs 50k to 65k. A tight axis on a line can be fine. A tight axis on a tight window hides everything around it.' },
+    ] },
+    { type: 'show', who: { name: 'Court record', icon: '📜' }, text: 'You subpoena the full year. The defence goes quiet.', svg: EX.tuktrakYear },
+    { type: 'round', claim: 'Every number on that chart is accurate. You can’t call it misleading.', options: [
+      { t: 'Accurate numbers, dishonest window. What you leave out is part of the argument.', ok: true, why: 'Framing is a choice. Choosing the frame that flatters you is cherry-picking.' },
+      { t: 'If the numbers are accurate, the chart is fine.', why: 'Every number in the full-year chart is accurate too. They tell the opposite story.' },
+      { t: 'The numbers were probably made by AI, so they’re wrong.', why: 'No evidence of that. The crime here is the window, not the numbers.' },
+    ] },
+    { type: 'round', claim: 'Three months is plenty to show a trend.', options: [
+      { t: 'Not when the six months before show users falling from 92k to 52k.', ok: true, why: 'The “record growth” is a partial recovery from a collapse.' },
+      { t: 'Agreed. Three points make a trend.', why: 'Three points make a line. Whether it’s a trend depends on what surrounds it.' },
+      { t: 'Only if you switch to a bar chart.', why: 'Changing the chart type doesn’t bring the missing months back.' },
+    ] },
+    { type: 'round', claim: 'The client only asked about Q3!', options: [
+      { t: 'Then title it “Q3 recovery” and show Q3 against the year. Context isn’t optional.', ok: true, why: 'You can zoom in. You can’t pretend the rest doesn’t exist.' },
+      { t: 'Then the chart is perfect as it is.', why: '“Record growth” is still a claim about the whole history.' },
+      { t: 'Then remove the axis so nobody argues about it.', why: 'Hiding the scale makes it worse, not safer.' },
+    ] },
+    { type: 'verdict', text: 'File the charge against Exhibit A.', correct: 'Insufficient data', notes: {
+      'Misleading patterns': 'It does suggest a false trend. But the root crime is the data that was cut out. Charge the cause.',
+      'Poor design': 'The design is clean. The window is the problem.' } },
+    { type: 'closed', lessons: [
+      '<b>Cherry-picking</b> is choosing the window that tells your story.',
+      'Always ask what came before and after the frame.',
+      'Charge: <b>insufficient data</b> (Cairo, <i>How Charts Lie</i>).' ] },
+  ],
+},
+{
+  id: 'dual', icon: '📈', place: 'Courtroom B', title: 'The Twin Axes',
+  npc: { name: 'Dr. Duo, expert witness', icon: '🧑‍🔬' },
+  steps: [
+    { type: 'talk', text: 'Dr. Duo, expert witness. I have proven, scientifically, that Kopi Kopi’s TikTok account drives its iced-coffee sales. Behold.' },
+    { type: 'examine', text: 'Exhibit B. Look how beautifully they move together.', svg: EX.dual, hotspots: [
+      { x: 22, y: 118, clue: 'Left axis: cups sold, 0 to 500. Sales went from 120 to 480. They quadrupled.' },
+      { x: 335, y: 147, clue: 'Right axis: followers, 48,000 to 50,200. That’s a 4% change, stretched to fill the same height as a 300% change.' },
+      { x: 260, y: 214, clue: 'January to June. Bangkok heats up every year. What else sells more iced coffee in hot season?' },
+    ] },
+    { type: 'show', who: { name: 'Court record', icon: '📜' }, text: 'The court puts both lines on the same footing: January = 100.', svg: EX.dualIndexed },
+    { type: 'round', claim: 'Look, the lines rise together. Case closed.', options: [
+      { t: 'You picked both scales. With two axes I can make any two lines move together.', ok: true, why: 'On a dual-axis chart, the designer decides where each line sits. The “relationship” is a drawing choice.' },
+      { t: 'The lines don’t overlap perfectly, so the chart is wrong.', why: 'Perfect overlap would be just as meaningless. The problem is the scales.' },
+      { t: 'TikTok lines should be pink.', why: 'The court appreciates the brand awareness. Irrelevant.' },
+    ] },
+    { type: 'round', claim: 'Fine, but they are correlated. That’s still evidence!', options: [
+      { t: 'Both rose in hot season. A third factor can drive both. Correlation isn’t causation.', ok: true, why: 'And indexed, one grew 300% while the other grew 4%. Barely a correlation, let alone a cause.' },
+      { t: 'Correlation proves causation if the chart is big enough.', why: 'Size has nothing to do with it.' },
+      { t: 'Correlation only counts in bar charts.', why: 'Chart type doesn’t change what the data can prove.' },
+    ] },
+    { type: 'round', claim: 'Dual axes save space on the slide.', options: [
+      { t: 'Then index both to 100, or use two small charts side by side on honest scales.', ok: true, why: 'Saving space is never a reason to invent a relationship.' },
+      { t: 'True. Space matters most.', why: 'Space matters. Truth matters more.' },
+      { t: 'Then add a third axis.', why: 'The court is concerned about you.' },
+    ] },
+    { type: 'verdict', text: 'File the charge against Exhibit B.', correct: 'Misleading patterns', notes: {
+      'Poor design': 'The dual axis is a design choice, yes. But its crime is the relationship it invents. Charge the effect.',
+      'Insufficient data': 'Six months of both series is enough to see what’s going on. The trick is in the scales.' } },
+    { type: 'closed', lessons: [
+      'Dual axes let the designer choose the relationship.',
+      'To compare fairly, <b>index to a common baseline</b> or use side-by-side charts.',
+      'Charge: <b>misleading patterns</b>.' ] },
+  ],
+},
+{
+  id: 'evidence', icon: '🕵️', place: 'The Evidence Room', title: 'Crime Scene: 128%', tape: true,
+  npc: { name: 'Detective Nok', icon: '🕵️' },
+  steps: [
+    { type: 'talk', text: 'Detective Nok. Two bodies of evidence in here, counsel, both from the same café marketing report. Mind the tape.' },
+    { type: 'examine', text: 'Body number one. The pie.', svg: EX.pie, hotspots: [
+      { x: 360, y: 72, clue: '45 + 38 + 27 + 18. Add them up. Go on.' },
+      { x: 130, y: 134, clue: 'A pie makes one promise: all slices add up to one whole, 100%. This one adds up to 128%.' },
+      { x: 378, y: 170, clue: 'Multiple answers allowed. So these were never parts of one whole in the first place.' },
+    ] },
+    { type: 'round', who: { name: 'Marketing intern', icon: '🧑‍💻' }, claim: 'It’s a pie chart. Everyone understands pie charts.', options: [
+      { t: 'A pie promises parts of one whole. Yours adds up to 128%.', ok: true, why: 'Readers compare slice sizes as shares of 100%. Here, every share is wrong.' },
+      { t: 'Everyone does. It’s fine.', why: 'Everyone understands it, which is why everyone will be misled by it.' },
+      { t: 'Make it 3D so it looks more premium.', why: 'Adding 3D to a broken pie gives you a broken 3D pie.' },
+    ] },
+    { type: 'round', who: { name: 'Marketing intern', icon: '🧑‍💻' }, claim: 'People could pick more than one answer, so the pie is technically fine.', options: [
+      { t: 'Then it isn’t a whole. Use bars: % of respondents per answer.', ok: true, why: 'Bars don’t promise a total, so multiple answers are no problem.' },
+      { t: 'Just scale the numbers down until they add up to 100.', why: 'Now you’ve made up four new numbers. That’s worse.' },
+      { t: 'Remove the percentages so nobody adds them up.', why: 'Hiding the evidence isn’t a fix. It’s a second crime.' },
+    ] },
+    { type: 'show', who: { name: 'Detective Nok', icon: '🕵️' }, text: 'Same data, right chart. Nothing to hide now.', svg: EX.pieFixed },
+    { type: 'examine', text: 'Body number two. The revenue chart. Look closely at those bars.', svg: EX.lie, hotspots: [
+      { x: 30, y: 206, clue: 'The axis starts at ฿9.86M, not zero. On a bar chart, length IS the value.' },
+      { x: 302, y: 125, clue: 'The 2026 bar is drawn 4× as tall as 2025. On screen, that’s a 300% jump.' },
+      { x: 188, y: 162, clue: 'The actual data: ฿10.0M to ฿10.42M. That’s a 4.2% increase.' },
+    ] },
+    { type: 'input', text: 'Time to measure the damage. Calculate the Lie Factor for this chart.', formula: 'Lie Factor = size of effect shown in the graphic ÷ size of effect in the data',
+      check: v => v >= 70 && v <= 72.5, hint: 'Effect shown: 300%. Effect in data: 4.2%. Divide the first by the second.',
+      success: 'About 71. Tufte called anything outside 0.95–1.05 a substantial distortion. This chart exaggerates by a factor of 71.' },
+    { type: 'round', who: { name: 'Marketing intern', icon: '🧑‍💻' }, claim: 'It’s not lying. It’s emphasis!', options: [
+      { t: 'Emphasis is a bold label. Making 4% look like 300% is distortion.', ok: true, why: 'Put the bars on a zero baseline and write “+4.2%” in big type. That’s emphasis.' },
+      { t: 'Emphasis is fine if the client approved it.', why: 'Client approval doesn’t change what the reader believes.' },
+      { t: 'It’s only a lie if you meant it.', why: 'Intent doesn’t change what the stakeholder believes. The chart lies either way.' },
+    ] },
+    { type: 'verdict', text: 'Both bodies in this room share one charge. File it.', correct: 'Poor design', notes: {
+      'Misleading patterns': 'The distortion comes from how both charts were built: wrong chart type, broken baseline. That’s design.',
+      'Dubious data': 'The data is fine in both. The construction isn’t.' } },
+    { type: 'closed', lessons: [
+      'Pies only work when the parts add up to one whole.',
+      '<b>Bars start at zero.</b> Their length is the value.',
+      '<b>Lie Factor</b> = effect shown ÷ effect in data (Tufte, 1983). Aim for 1.' ] },
+  ],
+},
+{
+  id: 'machine', icon: '🤖', place: 'The Witness Stand', title: 'The Machine Testifies',
+  npc: { name: 'DashBot 3000', icon: '🤖' },
+  steps: [
+    { type: 'talk', text: 'BEEP. I AM DASHBOT 3000. I BUILT YOUR DASHBOARD WHILE YOU SLEPT. NO NEED TO CHECK IT. YOU ARE WELCOME.' },
+    { type: 'examine', text: 'EXHIBIT: MY FINEST WORK. PLEASE ADMIRE.', svg: EX.bot, hotspots: [
+      { x: 316, y: 17, clue: 'The “auto-insight” picked the biggest change it could find. Biggest isn’t the same as most important.' },
+      { x: 352, y: 118, clue: 'Week 5: one post, reshared by the owner’s cousin to 40 friends. 16 likes became 66.' },
+      { x: 95, y: 118, clue: 'Five weeks, one account, no comparison, no range. A blip presented as a trend.' },
+    ] },
+    { type: 'round', claim: 'ENGAGEMENT IS UP 312%. THIS IS A FACT.', options: [
+      { t: 'Up from 16 likes. A huge percentage of a tiny base is still tiny.', ok: true, why: '16 → 66 is +312%. It’s also 50 likes. Always ask: up from what?' },
+      { t: '312% is too precise to be wrong.', why: 'Precision isn’t accuracy. Precise-looking numbers are how weak claims get past you.' },
+      { t: 'Percentages can’t mislead.', why: 'Percentages on tiny bases are among the most common ways to mislead.' },
+    ] },
+    { type: 'round', claim: 'I SELECTED THE CHART TYPE, COLOURS, AXIS AND HEADLINE FOR YOUR CONVENIENCE.', options: [
+      { t: 'Defaults are decisions. If I didn’t check them, I made them blind.', ok: true, why: 'Every default is a choice someone else made about your argument.' },
+      { t: 'Thanks. Shipping it.', why: 'That’s how the 312% ends up in front of the owner.' },
+      { t: 'Defaults are neutral, so nobody is responsible.', why: 'Nothing about a chart is neutral. Somebody is always responsible.' },
+    ] },
+    { type: 'round', claim: 'IF MY INSIGHT IS WRONG, THAT IS MY RESPONSIBILITY.', options: [
+      { t: 'Nobody fires the software. My name is on the slide.', ok: true, why: 'You’ll use AI. You still own the chart.' },
+      { t: 'Great, then I’m covered.', why: 'You are not covered. The stakeholder blames the person who presented it.' },
+      { t: 'Then we’ll blame the platform.', why: 'Your manager doesn’t have the platform’s phone number.' },
+    ] },
+    { type: 'round', claim: 'ALSO: MY SURVEY SAYS 68% OF CUSTOMERS LOVE THE NEW MENU.', options: [
+      { t: '68% of how many? Asked how? Without n or a margin of error, it’s a guess in a suit.', ok: true, why: '68% of 2,000 and 68% of 19 are very different claims. Show the n.' },
+      { t: '68% is a majority, so it’s proven.', why: 'A majority of what? You don’t know yet.' },
+      { t: 'Round it to 70%. It looks cleaner.', why: 'Now it’s a guess in a nicer suit.' },
+    ] },
+    { type: 'verdict', text: 'File the charge against DashBot’s 312% dashboard.', correct: 'Concealed uncertainty', alsoOk: {
+      'Insufficient data': 'Accepted. Five weeks of one account is thin. The court also notes the bigger crime: it hides how shaky the number is. That’s concealed uncertainty.' }, notes: {
+      'Misleading patterns': 'Close. But the pattern is real: likes did go up in week 5. What’s hidden is how fragile that number is.' } },
+    { type: 'closed', lessons: [
+      '<b>You’ll use AI. You still own the chart.</b>',
+      'Defaults are decisions: check the axis, range, colour, chart type and headline.',
+      '<b>Concealed uncertainty:</b> no n, no margin, no context means a guess dressed as a fact.' ] },
+  ],
+},
+{
+  id: 'zero', icon: '🌡️', place: 'Chambers', title: 'The Zero Question',
+  npc: { name: 'Prosecutor Zero', icon: '👨‍⚖️' },
+  steps: [
+    { type: 'talk', text: 'Prosecutor Zero. I have one rule, counsel: every axis starts at zero. This climate chart breaks my rule, and I want a conviction. Today, you’re the defence.' },
+    { type: 'examine', text: 'Exhibit D. The axis doesn’t start at zero. Guilty, obviously.', svg: EX.temp, hotspots: [
+      { x: 20, y: 186, clue: 'The axis starts at 27.5°C, and the chart says so right at the bottom. Nothing hidden.' },
+      { x: 240, y: 118, clue: 'About 1.4°C warmer over 40 years. A small number with a huge real-world effect.' },
+      { x: 360, y: 172, clue: 'It’s a line, not bars. We read lines for change, not for length.' },
+    ] },
+    { type: 'show', text: 'Fine. Here is the HONEST version. Axis from zero, as the law intended.', svg: EX.tempZero },
+    { type: 'round', claim: 'Every axis must start at zero. It’s the law!', options: [
+      { t: 'Bars must, because we read their length. Lines show change, so the axis can fit the data.', ok: true, why: 'Different chart types, different rules.' },
+      { t: 'You’re right. I’ll change my plea.', why: 'Stand firm, counsel. Look at what the zero version does to the warming.' },
+      { t: 'No axis ever needs to start at zero.', why: 'Too far. Remember the revenue bars in the Evidence Room.' },
+    ] },
+    { type: 'round', claim: 'Zero degrees is the more honest baseline.', options: [
+      { t: '0°C isn’t a meaningful baseline for Bangkok. Flattening a real 1.4° rise is the actual lie.', ok: true, why: 'The zero version hides a real, important change. Its Lie Factor is well below 1.' },
+      { t: 'Zero is always more honest.', why: 'Then the prosecution’s flat line would be honest. It isn’t.' },
+      { t: 'Use Fahrenheit, then it looks bigger.', why: 'Changing units to get a scarier number is its own crime.' },
+    ] },
+    { type: 'round', claim: 'So you admit truncating an axis is always fine?', options: [
+      { t: 'No. It’s fine when it’s labelled, the baseline isn’t meaningful, and it doesn’t exaggerate.', ok: true, why: 'Truncation is a decision. Make it on purpose, and disclose it.' },
+      { t: 'Yes, always.', why: 'The revenue chart in the Evidence Room would like a word.' },
+      { t: 'Only if the AI did it.', why: 'Who made the chart doesn’t change the rules.' },
+    ] },
+    { type: 'verdict', text: 'Deliver your verdict on Exhibit D.', correct: 'Acquit', notes: {} },
+    { type: 'closed', lessons: [
+      'Not every non-zero axis is a crime.',
+      '<b>Bars: start at zero. Lines: fit the meaningful range, and label it.</b>',
+      'The axis is a decision. Make it on purpose.' ] },
+  ],
+},
+];
+
+const BOSS = {
+  id: 'boss', icon: '⚖️', place: 'The Grand Courtroom', title: 'The Final Appeal',
+  npc: { name: 'Judge Ormond', icon: '⚖️' },
+  steps: [
+    { type: 'talk', text: 'Order. I am Judge Ormond. Eight charts are on today’s docket. Deliver a verdict on each one. Acquittals are permitted. Guesswork will be noted.' },
+    { type: 'docket', items: [
+      { svg: DOCKET_EX.plans, text: 'A consultancy compares customer satisfaction for two service plans.', correct: 'Poor design', hint: 'Look at where the bars start.', why: 'Bars on a 95% baseline turn a 2-point gap into a bar three times taller. Bars start at zero.' },
+      { svg: DOCKET_EX.love, text: 'A café posts its customer-love stat on LinkedIn.', correct: 'Dubious data', hint: 'Read the source line.', why: 'Polling your own followers means polling your fans. The source decided the answer.' },
+      { svg: DOCKET_EX.faculty, text: 'The registrar’s office publishes this year’s intake.', correct: 'Acquit', hint: 'Look for an actual crime. Is there one?', why: 'Zero baseline, labelled, sourced, one clear message. Not every chart is guilty.' },
+      { svg: DOCKET_EX.xmas, text: 'A shop owner shows the bank how business is going.', correct: 'Insufficient data', hint: 'How much time does this cover, and which weeks?', why: 'The weeks before Christmas aren’t a trend. Show the full year.' },
+      { svg: DOCKET_EX.cats, text: 'A lifestyle blog explains the café boom.', correct: 'Misleading patterns', hint: 'Does one of these plausibly cause the other?', why: 'Two things growing at the same time, two hand-picked axes. A link is implied, never shown.' },
+      { svg: DOCKET_EX.cups, text: 'A café celebrates doubling its sales.', correct: 'Poor design', hint: 'Compare the cups’ areas, not their heights.', why: 'Doubling height AND width quadruples the area. Readers see 4×. The data says 2×.' },
+      { svg: DOCKET_EX.poll, text: 'The student newspaper calls the council election.', correct: 'Concealed uncertainty', hint: 'How sure can a poll of 400 people be?', why: 'With ±5 points, 51 vs 49 is a statistical tie. Hiding the margin turns a coin flip into a headline.' },
+      { svg: DOCKET_EX.fever, text: 'A nurse tracks a patient’s fever overnight.', correct: 'Acquit', hint: 'Would a zero baseline help anyone read this?', why: '0°C is meaningless for a fever chart. The truncated axis is labelled and shows a real, important change.' },
+    ] },
+  ],
+};
+
+/* ---------- state ---------- */
+const KEY = 'eb367-chart-court-v1';
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+let S = load(); S.closed = S.closed || {}; S.mistakes = S.mistakes || 0;
+let cur = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function show(id) { document.querySelectorAll('.screen').forEach(e => e.hidden = e.id !== id); window.scrollTo(0, 0); }
+
+/* ---------- title ---------- */
+$('#name').value = S.name || '';
+$('#start').textContent = S.name ? 'Continue ▸' : 'Enter the courthouse ▸';
+$('#start').onclick = () => {
+  const n = $('#name').value.trim();
+  if (n.length < 2) { $('#name').focus(); $('#name').style.outline = '3px solid var(--rust)'; return; }
+  S.name = n; save(); renderMap();
+};
+$('#name').addEventListener('keydown', e => { if (e.key === 'Enter') $('#start').click(); });
+$('#reset').onclick = e => { e.preventDefault(); if (confirm('Start over? Your progress in this browser will be erased.')) { S = { closed: {}, mistakes: 0 }; save(); $('#name').value = ''; $('#start').textContent = 'Enter the courthouse ▸'; } };
+
+/* ---------- map ---------- */
+function renderMap() {
+  cur = null;
+  const done = CASES.filter(c => S.closed[c.id]).length;
+  $('#progress-txt').textContent = `${done} / ${CASES.length} cases closed`;
+  $('#progress-bar').style.width = (done / CASES.length * 100) + '%';
+  let h = CASES.map((c, i) => `<button class="door ${S.closed[c.id] ? 'closed' : ''}" data-case="${i}">
+      ${S.closed[c.id] ? '<span class="stamp">CLOSED</span>' : ''}
+      <div class="ic">${c.icon}</div><div class="pl">${c.place}</div><div class="tt">${c.title}</div></button>`).join('');
+  const open = done === CASES.length;
+  h += `<button class="door boss" data-case="boss" ${open ? '' : 'disabled'}>
+      ${S.bossDone ? '<span class="stamp" style="border-color:#fff;color:#fff">WON</span>' : ''}
+      <div class="ic">${open ? '⚖️' : '🔒'}</div><div class="pl">The Grand Courtroom</div>
+      <div class="tt">The Final Appeal${open ? '' : ' · locked'}</div></button>`;
+  if (S.bossDone) h += `<button class="door" data-cert="1" style="grid-column:1/-1"><div class="ic">📜</div><div class="pl">Your certificate</div><div class="tt">View it again</div></button>`;
+  $('#doors').innerHTML = h;
+  show('map');
+}
+$('#doors').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.cert) return renderCert();
+  startCase(b.dataset.case === 'boss' ? BOSS : CASES[+b.dataset.case]);
+});
+
+/* ---------- scene engine ---------- */
+function startCase(c) {
+  cur = { c, si: 0 };
+  $('#tape').innerHTML = c.tape ? '<div class="tape"><span>EVIDENCE · DO NOT CROSS · EVIDENCE · DO NOT CROSS · EVIDENCE · DO NOT CROSS</span></div>' : '';
+  $('#scene-place').textContent = c.place;
+  $('#scene-title').textContent = `${c.icon} ${c.title}`;
+  show('scene'); enterStep();
+}
+const step = () => cur.c.steps[cur.si];
+function enterStep() {
+  Object.assign(cur, { found: new Set(), clue: null, solved: false, wrong: new Set(), msg: null });
+  const st = step();
+  if (st.type === 'round') cur.order = shuffle(st.options.map((_, i) => i));
+  if (st.type === 'docket') cur.di = cur.di || 0;
+  render(); window.scrollTo(0, 0);
+}
+function next() { cur.si++; enterStep(); }
+
+function bubble(who, text, cls = '') {
+  return `<div class="npc ${cls}"><div class="portrait" aria-hidden="true">${who.icon}</div><div class="speech"><div class="npc-name">${who.name}</div><div class="npc-text">${text}</div></div></div>`;
+}
+const cont = (label = 'Continue ▸', dis = false) => `<div class="row" style="justify-content:flex-end"><button class="btn" data-act="next" ${dis ? 'disabled' : ''}>${label}</button></div>`;
+const exhibit = (svg, lbl = 'Exhibit') => `<div class="exhibit-lbl">${lbl}</div><div class="exhibit">${svg}</div>`;
+
+function render() {
+  const c = cur.c, st = step(), who = st.who || c.npc;
+  const nSteps = c.steps.filter(s => s.type !== 'closed').length;
+  $('#step-count').textContent = st.type === 'closed' ? 'Case closed' : `Step ${Math.min(cur.si + 1, nSteps)} / ${nSteps}`;
+  let h = '';
+  switch (st.type) {
+    case 'talk':
+      h = bubble(who, st.text) + cont(); break;
+
+    case 'show':
+      h = bubble(who, st.text) + exhibit(st.svg) + cont(); break;
+
+    case 'examine': {
+      const marks = st.hotspots.map((p, i) => `<g class="hs ${cur.found.has(i) ? 'done' : ''}" data-hs="${i}" tabindex="0" role="button" aria-label="Clue ${i + 1}"><circle cx="${p.x}" cy="${p.y}" r="11"/><text x="${p.x}" y="${p.y + 4}" text-anchor="middle">${cur.found.has(i) ? '✓' : i + 1}</text></g>`).join('');
+      const all = cur.found.size === st.hotspots.length;
+      h = bubble(who, st.text) + exhibit(st.svg.replace('</svg>', marks + '</svg>'), 'Exhibit · click the numbered markers') +
+        `<div class="cluebox" aria-live="polite">${cur.clue || '🔍 Examine every marker before you go to trial.'}</div>` +
+        `<div class="row"><span class="mono">${cur.found.size} / ${st.hotspots.length} clues</span><button class="btn" data-act="next" ${all ? '' : 'disabled'}>${all ? 'To trial ▸' : 'Find all clues'}</button></div>`;
+      break;
+    }
+
+    case 'round': {
+      h = `<div class="banner">⚖ OBJECTION ROUND</div>` + bubble(who, `“${st.claim}”`, 'claim') +
+        `<div class="mono" style="margin:0 0 8px">Pick your objection</div><div class="opts">` +
+        cur.order.map((oi, k) => { const o = st.options[oi];
+          const cls = cur.solved && o.ok ? 'right' : cur.wrong.has(oi) ? 'wrong' : '';
+          return `<button class="opt ${cls}" data-opt="${oi}" ${cur.solved || cur.wrong.has(oi) ? 'disabled' : ''}><b>${'ABC'[k]}</b>${o.t}</button>`; }).join('') + `</div>`;
+      if (cur.msg) h += cur.msg;
+      if (cur.solved) h += cont();
+      break;
+    }
+
+    case 'input':
+      h = bubble(who, st.text) + `<div class="formula">${st.formula}</div>` +
+        `<label class="lbl" for="lf">Your answer (round to the nearest whole number)</label>` +
+        `<div class="row" style="justify-content:flex-start;margin-top:0"><input type="number" id="lf" step="any" inputmode="decimal" style="max-width:180px" value="${cur.val ?? ''}" ${cur.solved ? 'disabled' : ''}>` +
+        `<button class="btn" data-act="calc" ${cur.solved ? 'disabled' : ''}>Submit to the court</button></div>` + (cur.msg || '') + (cur.solved ? cont() : '');
+      break;
+
+    case 'verdict':
+      h = `<div class="banner">🔨 THE VERDICT</div>` + bubble(who, st.text) + chargeGrid() + (cur.msg || '') + (cur.solved ? cont('Close the case ▸') : '');
+      break;
+
+    case 'docket': {
+      const it = st.items[cur.di], left = st.items.length - cur.di;
+      h = `<div class="row" style="margin:0 0 10px"><span class="banner" style="margin:0">⚖ THE DOCKET</span><span class="docket-count">Case ${cur.di + 1} of ${st.items.length} · <span class="gavels">${'🔨'.repeat(left)}</span></span></div>` +
+        bubble(who, it.text) + exhibit(it.svg, `Docket item ${cur.di + 1}`) + `<div class="mono" style="margin:0 0 8px">Your verdict</div>` + chargeGrid() + (cur.msg || '') +
+        (cur.solved ? cont(cur.di === st.items.length - 1 ? 'Hear the ruling ▸' : 'Next case ▸') : '');
+      break;
+    }
+
+    case 'closed':
+      S.closed[c.id] = true; save();
+      h = `<div class="card closed-card"><div class="big-stamp">CASE CLOSED</div><h3>${c.title}</h3>
+        <div class="kicker">What the court learned</div><ul>${st.lessons.map(l => `<li>${l}</li>`).join('')}</ul>
+        <div class="row"><span class="mono">${CASES.filter(x => S.closed[x.id]).length} / ${CASES.length} cases closed</span><button class="btn" data-act="map">Back to the courthouse ▸</button></div></div>`;
+      break;
+  }
+  $('#stage').innerHTML = h;
+  const lf = $('#lf'); if (lf && !cur.solved) lf.addEventListener('keydown', e => { if (e.key === 'Enter') $('[data-act=calc]').click(); });
+}
+
+function chargeGrid() {
+  return `<div class="charges">` + CHARGES.map(([n, d]) => {
+    const cls = (cur.solved && cur.pick === n) ? 'right' : cur.wrong.has(n) ? 'wrong' : '';
+    return `<button class="charge ${n === 'Acquit' ? 'acq' : ''} ${cls}" data-charge="${n}" ${cur.solved || cur.wrong.has(n) ? 'disabled' : ''}><strong>${n === 'Acquit' ? '🕊️ Acquit' : n}</strong><span>${d}</span></button>`;
+  }).join('') + `</div>`;
+}
+
+const fb = (good, head, body) => `<div class="fb ${good ? 'good' : 'bad'}" aria-live="polite"><strong>${head}</strong> ${body}</div>`;
+
+$('#stage').addEventListener('click', e => {
+  const t = e.target.closest('[data-hs],[data-opt],[data-charge],[data-act]'); if (!t || t.disabled) return;
+  const st = step();
+  if (t.dataset.hs !== undefined) { const i = +t.dataset.hs; cur.found.add(i); cur.clue = `<b>Clue ${i + 1}.</b> ${st.hotspots[i].clue}`; return render(); }
+  if (t.dataset.opt !== undefined) {
+    const oi = +t.dataset.opt, o = st.options[oi];
+    if (o.ok) { cur.solved = true; cur.msg = fb(true, 'OBJECTION SUSTAINED.', o.why); }
+    else { cur.wrong.add(oi); S.mistakes++; save(); cur.msg = fb(false, 'OVERRULED.', o.why); }
+    return render();
+  }
+  if (t.dataset.charge !== undefined) {
+    const n = t.dataset.charge;
+    if (st.type === 'docket') {
+      const it = st.items[cur.di];
+      if (n === it.correct) { cur.solved = true; cur.pick = n; cur.msg = fb(true, n === 'Acquit' ? 'ACQUITTED.' : 'GUILTY AS CHARGED.', it.why); }
+      else { cur.wrong.add(n); S.mistakes++; save(); cur.msg = fb(false, 'OVERRULED.', it.hint); }
+    } else {
+      if (n === st.correct || (st.alsoOk && st.alsoOk[n])) {
+        cur.solved = true; cur.pick = n;
+        cur.msg = fb(true, n === 'Acquit' ? 'NOT GUILTY.' : 'GUILTY AS CHARGED.', n === st.correct ? (n === 'Acquit' ? 'The chart walks free. Its choices were deliberate and disclosed.' : `The charge of ${n.toLowerCase()} sticks.`) : st.alsoOk[n]);
+      } else {
+        cur.wrong.add(n); S.mistakes++; save();
+        cur.msg = fb(false, 'OVERRULED.', (st.notes && st.notes[n]) || (n === 'Acquit' ? 'This chart has a crime on its record. Look at your clues again.' : 'That charge won’t stick. Re-read the definitions and your clues.'));
+      }
+    }
+    return render();
+  }
+  const a = t.dataset.act;
+  if (a === 'next') {
+    if (st.type === 'docket') {
+      if (cur.di < st.items.length - 1) { cur.di++; Object.assign(cur, { solved: false, wrong: new Set(), msg: null }); render(); window.scrollTo(0, 0); }
+      else { S.bossDone = true; S.doneAt = S.doneAt || new Date().toISOString(); save(); renderCert(); }
+      return;
+    }
+    return next();
+  }
+  if (a === 'calc') {
+    const v = parseFloat($('#lf').value); cur.val = $('#lf').value;
+    if (isNaN(v)) return;
+    if (st.check(v)) { cur.solved = true; cur.msg = fb(true, 'CORRECT.', st.success); }
+    else { S.mistakes++; save(); cur.msg = fb(false, 'NOT QUITE.', st.hint); }
+    return render();
+  }
+  if (a === 'map') return renderMap();
+});
+$('#stage').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-hs]')) { e.preventDefault(); e.target.closest('[data-hs]').dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+document.querySelectorAll('.scene-head [data-act=map], #cert [data-act=map]').forEach(b => b.onclick = renderMap);
+
+/* ---------- certificate ---------- */
+function renderCert() {
+  $('#cert-name').textContent = S.name || 'Counsel';
+  const d = new Date(S.doneAt || Date.now());
+  $('#cert-meta').innerHTML = `Completed ${esc(d.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}<br>` +
+    `6 cases closed · 8 docket verdicts · ${S.mistakes} objection${S.mistakes === 1 ? '' : 's'} overruled along the way`;
+  show('cert');
+}
+
+/* ---------- boot ---------- */
+show('title');
+</script>
+</body>
+</html>
